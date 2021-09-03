@@ -23,6 +23,7 @@ import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 // ----------------------------------------------------------------------------
 /**
@@ -127,8 +128,8 @@ public class SafeCrystals extends JavaPlugin implements Listener {
      * @param crystal the crystal.
      * @param player the player.
      */
-    protected void tryBreakEnderCrystal(Entity crystal, Player player) {
-        Location loc = crystal.getLocation();
+    protected void tryBreakEnderCrystal(final Entity crystal, Player player) {
+        final Location loc = crystal.getLocation();
         if (canBuild(player, loc)) {
             crystal.remove();
             String suppressed;
@@ -142,6 +143,16 @@ public class SafeCrystals extends JavaPlugin implements Listener {
                              loc.getWorld().getName() + ", " +
                              loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + suppressed);
         }
+
+        // Fix fire spawning after crystal is broke
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (loc.getBlock().getType() == Material.FIRE) {
+                    loc.getBlock().setType(Material.AIR);
+                }
+            }
+        }.runTaskLater(this, 0);
     }
 
     // ------------------------------------------------------------------------
